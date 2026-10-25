@@ -14,9 +14,21 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: Mudar o nome da app
+        run: |
+          sed -i 's/PIF Gatinha/Patinhas Fortes/' capacitor.config.json
+          sed -i 's/Tratamento PIF/Patinhas Fortes/g' www/index.html
       - run: npm install
       - run: npx cap add android
-      - run: npx capacitor-assets generate --android --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff'
+      - name: Pôr o logo da gatinha como ícone
+        run: |
+          RES=android/app/src/main/res
+          rm -rf $RES/mipmap-anydpi-v26
+          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            n=${d%%:*}; s=${d##*:}
+            convert assets/icon-only.png -resize ${s}x${s} $RES/mipmap-$n/ic_launcher.png
+            cp $RES/mipmap-$n/ic_launcher.png $RES/mipmap-$n/ic_launcher_round.png
+          done
       - run: npx cap sync android
       - run: chmod +x android/gradlew
       - run: cd android && ./gradlew assembleDebug
