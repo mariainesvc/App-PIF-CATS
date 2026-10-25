@@ -117,13 +117,16 @@ function renderCal(){
  $("pm").onclick=function(){cm=new Date(y,m-1,1);renderCal()};$("nm").onclick=function(){cm=new Date(y,m+1,1);renderCal()};
  document.querySelectorAll(".d[data-k]").forEach(function(b){b.onclick=function(){var k=b.dataset.k;if(S.taken[k])delete S.taken[k];else S.taken[k]=1;save();all()}});
 }
+var editD=null;
 function renderPeso(){
  var w=S.weights.slice().sort(function(a,b){return a.d<b.d?-1:1}),h='<div class="card"><h2>Registar peso</h2><label>Peso (kg)</label><input id="wk" type="number" inputmode="decimal" step="0.01" placeholder="3,20"><label>Data</label><input id="wd" type="date" value="'+T+'"><div class="row"><button id="wb">Guardar</button></div></div>';
  if(w.length>1){var mn=Math.min.apply(null,w.map(function(x){return x.kg})),mx=Math.max.apply(null,w.map(function(x){return x.kg})),rg=(mx-mn)||1,pts=w.map(function(x,i){return (10+i*(300/(w.length-1)))+","+(10+(1-(x.kg-mn)/rg)*100)}).join(" ");
   h+='<div class="card"><h2>Evolução</h2><svg viewBox="0 0 320 120" style="width:100%"><polyline fill="none" stroke="var(--ac)" stroke-width="3" points="'+pts+'"/></svg><div class="mut">De '+fix(w[0].kg)+' kg para '+fix(w[w.length-1].kg)+' kg</div></div>'}
- if(w.length){h+='<div class="card"><h2>Histórico</h2>';w.slice().reverse().forEach(function(x){h+='<div class="wl"><span>'+fmtD(pd(x.d))+'</span><b>'+fix(x.kg)+' kg</b></div>'});h+='</div>'}
+ if(w.length){h+='<div class="card"><h2>Histórico</h2>';w.slice().reverse().forEach(function(x){h+='<div class="wl" style="align-items:center;gap:8px"><span style="flex:1">'+fmtD(pd(x.d))+' '+x.d.slice(0,4)+'</span><b>'+fix(x.kg)+' kg</b><button class="sec ed" data-d="'+x.d+'" style="flex:none;padding:8px 10px">Editar</button><button class="sec dl" data-d="'+x.d+'" style="flex:none;padding:8px 10px">Apagar</button></div>'});h+='</div>'}
  $("v-peso").innerHTML=h;
- $("wb").onclick=function(){var kg=parseFloat(($("wk").value||"").replace(",",".")),d=$("wd").value;if(kg>0&&d){S.weights=S.weights.filter(function(x){return x.d!=d});S.weights.push({d:d,kg:kg});save();all()}};
+ $("wb").onclick=function(){var kg=parseFloat(($("wk").value||"").replace(",",".")),d=$("wd").value;if(kg>0&&d){S.weights=S.weights.filter(function(x){return x.d!=d&&x.d!=editD});S.weights.push({d:d,kg:kg});editD=null;save();all()}};
+ document.querySelectorAll("#v-peso .dl").forEach(function(b){b.onclick=function(){if(confirm("Apagar este registo de peso?")){S.weights=S.weights.filter(function(x){return x.d!=b.dataset.d});save();all()}}});
+ document.querySelectorAll("#v-peso .ed").forEach(function(b){b.onclick=function(){var x=S.weights.filter(function(y){return y.d==b.dataset.d})[0];if(!x)return;editD=x.d;$("wk").value=x.kg;$("wd").value=x.d;$("wb").textContent="Atualizar registo";window.scrollTo(0,0);$("wk").focus()}});
 }
 function renderDef(){
  var o="";for(var k in FM)o+='<option value="'+k+'"'+(S.fmt==k?" selected":"")+'>'+FM[k].n+'</option>';
